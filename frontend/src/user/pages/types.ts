@@ -1,5 +1,5 @@
 import { Customer } from "../components/customers/types";
-import { BtnClicksProps, RefundDetailsObj, PoeCalcHandlesProps } from "../sections/pointOfEntry/types";
+import { BtnClicksProps, RefundDetailsObj, PoeCalcHandlesProps, Order } from "../sections/pointOfEntry/types";
 
 export interface details{
     icon: JSX.Element;
@@ -88,4 +88,5 @@ export interface SalesListContextProps{
         isRefund: boolean, 
         units?: number
     ) =>void;
+    setOrdersList: React.Dispatch<React.SetStateAction<Order[]>>;
 }

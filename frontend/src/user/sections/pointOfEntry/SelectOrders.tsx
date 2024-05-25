@@ -7,7 +7,7 @@ interface SalectOrdersProps extends Omit<InventorySelectProps, 'orderDetails' | 
     showInventoryOrders: string;
 }
 const SelectOrders: React.FC<SalectOrdersProps> = ({handleNewOrderSelect, handleEditOrder, ordersList,
-    setShowInventoryOrders, activeCard, showInventoryOrders, PoeCalcHandles, selectCustomer, btnClicks}) =>{
+    setShowInventoryOrders, showInventoryOrders, PoeCalcHandles, selectCustomer, btnClicks}) =>{
     return(
         (() => {
             return ordersList.map((order, i) => {
@@ -18,7 +18,6 @@ const SelectOrders: React.FC<SalectOrdersProps> = ({handleNewOrderSelect, handle
                     className="sales-entry-container d-flex flex-column flex-md-row col-12">
                     <PoeCalcOrderDisplay 
                         showInventoryOrders = {showInventoryOrders}
-                        activeCard={activeCard}
                         handleEditOrder={handleEditOrder}
                         orderDetails={orderDetails}
                         totalPrice={totalPrice}
@@ -34,7 +33,6 @@ const SelectOrders: React.FC<SalectOrdersProps> = ({handleNewOrderSelect, handle
                             orderDetails={orderDetails}
                             handlePayment={PoeCalcHandles.handlePayment}
                             setShowInventoryOrders={setShowInventoryOrders}
-                            activeCard={activeCard}
                         />
                     </div>
                 </div>

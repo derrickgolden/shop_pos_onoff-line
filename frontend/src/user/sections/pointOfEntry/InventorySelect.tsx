@@ -11,7 +11,7 @@ import { getSessionStorage } from "../../controllers/getSessionStorage";
 import { InventorySelectProps } from "./types";
 
 const InventorySelect: React.FC<InventorySelectProps> = ({ handleNewOrderSelect, 
-    handleEditOrder, orderDetails, handlePayment, setShowInventoryOrders, activeCard }) =>{
+    handleEditOrder, orderDetails, handlePayment, setShowInventoryOrders }) =>{
 
     const [groupNames, setGroupNames] = useState<string[]>([])
     const [showGroup, setShowGroup] = useState("All")
@@ -22,7 +22,7 @@ const InventorySelect: React.FC<InventorySelectProps> = ({ handleNewOrderSelect,
 
     const userShop = getSessionStorage();
     const { localShop } = userShop;
-    const order = orderDetails.find(item => item.product_id === activeCard)
+    const order = orderDetails.find(item => item.activeCard);
     
     useEffect(()=>{
         const groupNames: string[] = productGroup.map((group) => {
@@ -31,14 +31,14 @@ const InventorySelect: React.FC<InventorySelectProps> = ({ handleNewOrderSelect,
         setGroupNames(groupNames);
     }, [productGroup])
     useEffect(()=>{
-            const filterNull = true;
-            const shop_id = localShop?.shop_id;
-            if(shop_id !== undefined){
-                const res = getProductGroupList(filterNull, shop_id);
-                res.then((data) =>{        
-                    dispatch(setGroupList(data));
-                })
-            }
+        const filterNull = true;
+        const shop_id = localShop?.shop_id;
+        if(shop_id !== undefined){
+            const res = getProductGroupList(filterNull, shop_id);
+            res.then((data) =>{        
+                dispatch(setGroupList(data));
+            })
+        }
     },[productGroup.length === 0])
     
     return(
@@ -71,7 +71,6 @@ const InventorySelect: React.FC<InventorySelectProps> = ({ handleNewOrderSelect,
                         <OrdersCard 
                             key={0}
                             order = {order} 
-                            activeCard={activeCard}
                             handleEditOrder= {handleEditOrder} 
                             orderDetails = {orderDetails}
                         />

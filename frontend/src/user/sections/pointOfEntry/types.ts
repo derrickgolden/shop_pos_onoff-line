@@ -14,7 +14,6 @@ export interface PoeCalcHandlesProps {
   }
 
 export interface CommonSalesEntryProps{
-  activeCard: number; 
   totalPrice?: number;
   orderDetails: OrderDetail[];
   handleEditOrder: (order: OrderDetail) => void;
@@ -60,7 +59,6 @@ export interface InventorySelectProps {
   handleEditOrder: (order: OrderDetail) => void;
   handlePayment: () => void;
   setShowInventoryOrders: (orders: string) => void;
-  activeCard: number;
 };
 
 export interface PaymentDetails{ 
@@ -78,4 +76,5 @@ export interface BtnClicksProps{
 
 export interface RefundDetailsObj extends SalesItemApiData{
   refund_units?: number;
+  activeCard: boolean;
 };

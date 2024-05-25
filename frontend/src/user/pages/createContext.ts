@@ -1,4 +1,4 @@
-import { createContext, useContext } from "react";
+import React, { createContext, useContext } from "react";
 import { CustomerContextType, SalesListContextProps } from "./types";
 
 // Create the context
@@ -21,6 +21,10 @@ export const SalesListContext = createContext<SalesListContextProps>({
     isNewPayment: true, isDigit: false, focusedBtn: "qty"
   },
   handleNewOrderSelect: (newOrder: undefined, isRefund: false, units: 1 ) => {},
+  setOrdersList: [{ 
+    date: new Date().toLocaleString(), orderDetails: [], activeOrder: true, 
+    status: "inProgress" , totalPrice: 0, total_profit: 0, isRefund: false
+  }]
 });
   
 // Create a custom hook to consume the context

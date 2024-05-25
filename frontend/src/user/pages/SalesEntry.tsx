@@ -24,13 +24,15 @@ export interface OrderDetail extends ProductDetails {
   profit: number;
   discount: number;
   refund_units: number;
+  isProductRefund: boolean;
+  activeCard: boolean;
 }
 
 const SalesEntry = () =>{
-    const [activeCard, setActiveCard] = useState(0);
-    const [ordersList, setOrdersList] = useState<Order[]>([{ date: new Date().toLocaleString(), 
-      orderDetails: [], activeOrder: true, status: "inProgress" , totalPrice: 0, total_profit: 0,
-      isRefund: false
+    // const [activeCard, setActiveCard] = useState({product_id: 0, isProductRefund: false});
+    const [ordersList, setOrdersList] = useState<Order[]>([{ 
+      date: new Date().toLocaleString(), orderDetails: [], activeOrder: true, 
+      status: "inProgress" , totalPrice: 0, total_profit: 0, isRefund: false
     }]);
     const [entryStep, setEntryStep] = useState({current: "inProgress", prev: ""});
 
@@ -50,7 +52,7 @@ const SalesEntry = () =>{
     const [sendInvoice, setSendInvoice] = useState(false);
 
     const [isOnline, setIsOnline] = useState(window.navigator.onLine);
-console.log(ordersList[0])
+
     useEffect(() => {
       const handleOnline = () => {
         setIsOnline(true);
@@ -80,11 +82,11 @@ console.log(ordersList[0])
             return arr.map((order) =>{
               if(order.activeOrder){
                 const newDetails =  order.orderDetails.map(orderDetail => {
-                  if (orderDetail.product_id === activeCard && orderDetail.units >= 0) {                    
+                  if (orderDetail.activeCard && orderDetail.units >= 0) {                    
                     const {newUnits, newDisc, newPrice} = calcNewUnitDiscPrice({
                       btnClicks, orderDetail, operator: "digitClick", setBtnClicks, digit
                     });
-                    return handleUpdatingStock({orderDetail, setUpdateStock, activeCard, newUnits, newDisc, newPrice});
+                    return handleUpdatingStock({orderDetail, setUpdateStock, newUnits, newDisc, newPrice});
                   };
                   return orderDetail;
                 });
@@ -104,13 +106,13 @@ console.log(ordersList[0])
             return arr.map(order =>{
               if(order.activeOrder){
                 const newOrders = order.orderDetails.map(orderDetail => {
-                  if (orderDetail.product_id === activeCard) {
+                  if (orderDetail.activeCard) {
                     // check if we are updating qty | discount | price
                     const {newUnits, newDisc, newPrice} = calcNewUnitDiscPrice({
                       btnClicks, orderDetail, operator: "add", setBtnClicks, digit: 1,
                     });
                     const newOrderDetails = handleUpdatingStock({
-                      orderDetail, setUpdateStock, activeCard, newUnits, newDisc, newPrice
+                      orderDetail, setUpdateStock, newUnits, newDisc, newPrice
                     });
 
                     return newOrderDetails;
@@ -132,7 +134,7 @@ console.log(ordersList[0])
             return arr.map(order =>{
               const {activeOrder, orderDetails} = order;
               if(activeOrder){
-                const [orderDetail] = orderDetails.filter(orderDetail=> orderDetail.product_id === activeCard);
+                const [orderDetail] = orderDetails.filter(orderDetail=> orderDetail.activeCard);
                 if(orderDetail){
 
                   const {focusedBtn} = btnClicks;
@@ -140,12 +142,12 @@ console.log(ordersList[0])
                     (focusedBtn === 'disc' && orderDetail.discount > 0) || 
                     (focusedBtn === 'price' && orderDetail.price > 0)){
                     const newDetails = orderDetails.map(orderDetail => {
-                      if (orderDetail.product_id === activeCard ) {
+                      if (orderDetail.activeCard ) {
                         const {newUnits, newDisc, newPrice} = calcNewUnitDiscPrice({
                           btnClicks, orderDetail, operator: "slice", setBtnClicks, digit: 0
                         });
                         const newOrderDetails = handleUpdatingStock({
-                          orderDetail, setUpdateStock, activeCard, newUnits, newDisc, newPrice
+                          orderDetail, setUpdateStock, newUnits, newDisc, newPrice
                         });
                         
                         return newOrderDetails;
@@ -157,14 +159,20 @@ console.log(ordersList[0])
                     const{ totalPrice, total_profit }= calcTotalPrice(newDetails);
                     return { ...order, orderDetails: newDetails, totalPrice, total_profit };
                   }else if(focusedBtn === 'qty'){
-                    setUpdateStock((stockArr) =>stockArr.filter(stock => stock?.product_id !== activeCard));
+                    setUpdateStock((stockArr) =>stockArr.filter(stock =>{
+                      return stock?.product_id !== orderDetail.product_id && orderDetail.activeCard
+                    } ));
                     
-                    const newOrderDetails =  order.orderDetails.filter(orderDetail =>{ 
-                      return orderDetail?.product_id !== activeCard
+                    let newOrderDetails = order.orderDetails.filter(({ activeCard }) => !activeCard);
+
+                    newOrderDetails = newOrderDetails.map((orderDetail, index) => {
+                      if (index === newOrderDetails.length - 1) {
+                        return { ...orderDetail, activeCard: true };
+                      }
+                      return orderDetail;
                     });
-                    setActiveCard(newOrderDetails[(newOrderDetails.length - 1)]?.product_id);
                     
-                    const{ totalPrice, total_profit }= calcTotalPrice(newOrderDetails);
+                    const{ totalPrice, total_profit } = calcTotalPrice(newOrderDetails);
   
                     return { ...order, orderDetails: newOrderDetails, totalPrice, total_profit };
                   }else{
@@ -181,6 +189,7 @@ console.log(ordersList[0])
           // Your logic for handling refund
           console.log('Handling Refund');
           setEntryStep({current: "salesList", prev: "inProgress"});
+          setShowInventoryOrders("sales");
         },
       
         handleCustomerNote: async() => {
@@ -189,7 +198,7 @@ console.log(ordersList[0])
           ordersList.map(order =>{
             if(order.activeOrder){
               order.orderDetails.map(orderDetail => {
-                if(orderDetail.product_id === activeCard){
+                if(orderDetail.activeCard){
                   note = orderDetail.customer_note;
                 }
               });
@@ -214,7 +223,7 @@ console.log(ordersList[0])
             return arr.map(order =>{
               if(order.activeOrder){
                 const newOrders = order.orderDetails.map(orderDetail => {
-                  if (orderDetail?.product_id === activeCard) {
+                  if (orderDetail.activeCard) {
                     if (text) {
                       orderDetail.customer_note = text;
                     }else{
@@ -250,25 +259,31 @@ console.log(ordersList[0])
         }
     };
             
-    const handleNewOrderSelect = ( newOrder: ProductDetails | RefundDetailsObj, isRefund = false, units = 1 ) => {
+    const handleNewOrderSelect = ( newOrder: ProductDetails | RefundDetailsObj, isRefund = false, units = 1 ) =>{
       const {product_id, price} = newOrder;
       setOrdersList((arr) => {
         return arr.map(order => {
-          if(order.activeOrder){
-            const existingProduct = order.orderDetails.find(orderDetail => orderDetail.product_id === product_id);
+          let {activeOrder, orderDetails} = order;
+          if(activeOrder){
+            const existingProduct = orderDetails.find(orderDetail =>{
+              return (orderDetail.product_id === product_id) && 
+                (orderDetail.isProductRefund === isRefund);
+            });
             if (existingProduct) {
-              const newOrders = order?.orderDetails.map(orderDetail => {
-                if (orderDetail.product_id === product_id) {
+              // console.log(true === true);
+              const newOrders = orderDetails.map(orderDetail => {
+                if ((orderDetail.product_id === product_id) && 
+                  (orderDetail.isProductRefund === isRefund)) {
                   const newUnits = orderDetail.units + units;
                   const newDisc = orderDetail.discount;
                   const newPrice = orderDetail.price;
                   const newOrderDetails = handleUpdatingStock({
-                    orderDetail, setUpdateStock, activeCard, newUnits, newDisc, newPrice
+                    orderDetail, setUpdateStock, newUnits, newDisc, newPrice
                   });
   
-                  return newOrderDetails;
+                  return {...newOrderDetails, activeCard: true};
                 } else {
-                  return orderDetail;
+                  return {...orderDetail, activeCard: false};
                 };
               });
               
@@ -277,22 +292,22 @@ console.log(ordersList[0])
             }else{
               // calculate Remaining stock; 
               const useActiveCard = false;
-              let orderDetail
+              let orderDetail;
               if(isRefund){
-                orderDetail = newOrder;
+                orderDetail = {...newOrder, isProductRefund: isRefund, activeCard: true};
               }else{
-                orderDetail = {...newOrder, units, sub_total: 0, profit: 0, 
-                  discount: 0, customer_note: "", refund_units: 0
-                }
-              }
+                orderDetail = {...newOrder, units, sub_total: 0, profit: 0, activeCard: true,
+                  discount: 0, customer_note: "", refund_units: 0, isProductRefund: isRefund
+                };
+              };
               
-              const newUpdateDetails = handleUpdatingStock({orderDetail, setUpdateStock, activeCard,
+              const newUpdateDetails = handleUpdatingStock({orderDetail, setUpdateStock,
                  newUnits: units, newDisc: 0, newPrice: price, useActiveCard
               });
-              const updatedOrderDetails = [...order.orderDetails, newUpdateDetails];
+              orderDetails.forEach(orderDetail => orderDetail.activeCard = false)
+              const updatedOrderDetails = [...orderDetails, newUpdateDetails];
               const {totalPrice, total_profit} = calcTotalPrice(updatedOrderDetails);
                 
-              console.log(total_profit);
               return { ...order, orderDetails: updatedOrderDetails, totalPrice, total_profit, isRefund };
             }
           }else{
@@ -300,13 +315,25 @@ console.log(ordersList[0])
           }
         })
       });
-      setActiveCard(product_id);
+      // setActiveCard(product_id);
       // btnClicks.isDigit? setBtnClicks((obj) => ({...obj, isDigit: false})) :null;
       setBtnClicks((obj) => ({...obj, isDigit: false, focusedBtn: "qty"}));
     };
         
-    const handleEditOrder = (order: OrderDetail) =>{
-      setActiveCard(order.product_id);
+    const handleEditOrder = (product: OrderDetail) =>{
+      // setActiveCard(order.product_id);
+      setOrdersList(arr =>{
+        return arr.map(order =>{
+          let {activeOrder, orderDetails} = order;
+          if(activeOrder){
+            orderDetails.forEach( details => 
+              details.activeCard = (details.product_id === product.product_id && !details.isProductRefund) );
+            return {...order, orderDetails};
+          }else{
+            return order;
+          }
+        })
+      })
       setBtnClicks((obj) => ({...obj, isDigit: false}));
     };
 
@@ -399,7 +426,6 @@ console.log(ordersList[0])
                 handleNewOrderSelect={handleNewOrderSelect}
                 handleEditOrder={handleEditOrder}
                 setShowInventoryOrders={setShowInventoryOrders}
-                activeCard={activeCard}
                 showInventoryOrders={showInventoryOrders}
                 ordersList={ordersList}
                 PoeCalcHandles={PoeCalcHandles}
@@ -440,10 +466,10 @@ console.log(ordersList[0])
               <OrdersList 
                 ordersList={ordersList}
                 setOrdersList={setOrdersList}
-                activeCard={activeCard}
                 setEntryStep={setEntryStep}
                 handleNewCustomerOrder={handleNewCustomerOrder}
                 handleDeleteCustomerOrder={handleDeleteCustomerOrder}
+                setShowInventoryOrders={setShowInventoryOrders}
               />
             );
           case "customerList":
@@ -457,7 +483,7 @@ console.log(ordersList[0])
           case "salesList":
             return(
               <SalesListContext.Provider value={{ setEntryStep, handleNewCustomerOrder, showInventoryOrders,
-                PoeCalcHandles, selectCustomer, btnClicks, handleNewOrderSelect
+                PoeCalcHandles, selectCustomer, btnClicks, handleNewOrderSelect, setOrdersList
               }}>
                 <SalesList
                 />

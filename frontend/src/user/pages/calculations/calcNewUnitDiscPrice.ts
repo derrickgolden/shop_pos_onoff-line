@@ -1,4 +1,4 @@
-import { BtnClicksProps } from "../../sections/pointOfEntry/types";
+import { BtnClicksProps, RefundDetailsObj } from "../../sections/pointOfEntry/types";
 import { OrderDetail } from "../SalesEntry";
 
 interface calcNewDetailsParams {
@@ -16,10 +16,11 @@ interface RightOperandParams extends calcNewDetailsParams {
 export const calcNewUnitDiscPrice = (params: calcNewDetailsParams) =>{
     const { btnClicks, orderDetail } = params;
     const { focusedBtn } = btnClicks;
-    let { units: newUnits, discount: newDisc, price: newPrice } = orderDetail;
+    let { units: newUnits, refund_units, isProductRefund, discount: newDisc, price: newPrice } = orderDetail;
 
     if(focusedBtn === 'qty'){
-        const operand = rightOperand({...params, operand: newUnits});
+        const units = isProductRefund? refund_units : newUnits;
+        const operand = rightOperand({...params, operand: units });
         newUnits = operand;
 
     }else if(focusedBtn === 'disc'){

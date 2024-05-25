@@ -7,14 +7,14 @@ import DisplayOrdersList from "../../components/pointOfEntry/DisplayList";
 
 interface OrdersListProps {
     ordersList: Order[];
-    activeCard: number; 
     setEntryStep: React.Dispatch<React.SetStateAction<EntryStepTypes>>;
     handleNewCustomerOrder: ({date}: {date: string}) => void;
     handleDeleteCustomerOrder: (e: React.MouseEvent<HTMLTableDataCellElement, MouseEvent>, order: Order) => void;
-    setOrdersList:  React.Dispatch<React.SetStateAction<Order[]>>
+    setOrdersList:  React.Dispatch<React.SetStateAction<Order[]>>;
+    setShowInventoryOrders: React.Dispatch<React.SetStateAction<string>>;
 }
 
-const OrdersList: React.FC<OrdersListProps> = ({ordersList, activeCard,  
+const OrdersList: React.FC<OrdersListProps> = ({ordersList, setShowInventoryOrders,  
     setEntryStep, handleNewCustomerOrder, handleDeleteCustomerOrder, setOrdersList }) =>{
 
     const [showReview, setShowReview] = useState(false); 
@@ -25,7 +25,7 @@ const OrdersList: React.FC<OrdersListProps> = ({ordersList, activeCard,
         if (scrollRef.current) {            
             scrollRef.current.scrollTop = scrollRef.current.scrollHeight;
         }
-    }, [activeCard]);
+    }, [ordersList.length]);
 
     const handleChangeActiveOrder = (order: Order) =>{
         setOrdersList((arr) => {
@@ -45,6 +45,7 @@ const OrdersList: React.FC<OrdersListProps> = ({ordersList, activeCard,
             console.log(orders)
             if(orders.activeOrder){
                 setEntryStep(obj =>({...obj, current: orders.status}));
+                setShowInventoryOrders("orders");
             };
         });
     };
@@ -69,7 +70,6 @@ const OrdersList: React.FC<OrdersListProps> = ({ordersList, activeCard,
                     return order.activeOrder === true ?
                         <OrderDisplay key={i}
                             windowDisplay = "orders"
-                            activeCard = {activeCard}
                             handleEditOrder = {handleEditOrder}
                             orderDetails = {order.orderDetails}
                             totalPrice = {order.totalPrice}

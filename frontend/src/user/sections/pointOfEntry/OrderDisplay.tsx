@@ -4,7 +4,7 @@ import OrdersCard from "../../components/pointOfEntry/OrdersCard";
 import calculateVAT from "../../controllers/calculations/calculateVAT";
 import { CommonSalesEntryProps } from "./types";
 
-const OrderDisplay: React.FC<CommonSalesEntryProps> = ({ activeCard, handleEditOrder, 
+const OrderDisplay: React.FC<CommonSalesEntryProps> = ({ handleEditOrder, 
     orderDetails, totalPrice, windowDisplay, setShowReview, handleEntryStep }) =>{
     const scrollRef = useRef<HTMLDivElement | null>(null);
 
@@ -13,8 +13,8 @@ const OrderDisplay: React.FC<CommonSalesEntryProps> = ({ activeCard, handleEditO
         if (scrollRef.current) {            
             scrollRef.current.scrollTop = scrollRef.current.scrollHeight;
         }
-    }, [activeCard]);
-    // console.log(orderDetails);
+    }, [orderDetails.length]);
+
     return(
         <div className={`${windowDisplay === "orders"? "h-100" : " "} position-relative col-12 px-0 mx-0 order-cards `}  >
             {orderDetails.length === 0 ?(
@@ -32,7 +32,6 @@ const OrderDisplay: React.FC<CommonSalesEntryProps> = ({ activeCard, handleEditO
                             <OrdersCard 
                                 key={i}
                                 order={order}
-                                activeCard = {activeCard}
                                 handleEditOrder = {handleEditOrder}
                                 orderDetails ={orderDetails}
                             />

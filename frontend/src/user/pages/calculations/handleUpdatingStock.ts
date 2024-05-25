@@ -10,17 +10,16 @@ export interface UpdateStockProps{
 type HandleUpdatingStockParams = {
     orderDetail: OrderDetail;
     setUpdateStock: Dispatch<SetStateAction<UpdateStockProps[]>>;
-    activeCard: number;
     newUnits: number;
     newDisc: number;
     newPrice: number;
     useActiveCard?: boolean;
 };
 
-export const handleUpdatingStock = ({orderDetail, setUpdateStock, activeCard, newUnits, 
+export const handleUpdatingStock = ({orderDetail, setUpdateStock, newUnits, 
     newDisc, newPrice, useActiveCard = true}: HandleUpdatingStockParams) =>{
 
-    const { package_size, stock_qty, open_container_units, package_cost, product_id} = orderDetail;
+    const { package_size, stock_qty, open_container_units, package_cost, activeCard, product_id} = orderDetail;
     const product2 = {
         unitsPerContainer: package_size,
         containersInStock: stock_qty,
@@ -39,9 +38,9 @@ console.log(remainingContainers, remainingUnits);
         setUpdateStock((stockArr) => {
             if(useActiveCard){
                 const updatedStockArr = stockArr.map((item) => {
-                    if (item.product_id === activeCard ) {
+                    if (item.product_id === product_id && activeCard) {
                         return {
-                            product_id: activeCard,
+                            product_id,
                             remainingContainers,
                             remainingUnits
                         };
