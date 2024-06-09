@@ -90,7 +90,7 @@ const CustomerList: React.FC<CustomerListProps> = ({setEntryStep, selectCustomer
 
     const handleSearchChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
         setSearch(e.target.value);
-        setSearchType(e.target.value); // Prop to set the search type in the parent component
+        setSearchType(e.target.value); 
     };
     return (
         <div>
