@@ -43,13 +43,12 @@ const storage = multer.diskStorage({
 const upload = multer({ storage: storage });
 
 const app = express();
-app.use(cors({origin: ["https://shoppos.netlify.app", "http://localhost:5173"]}))
-// app.use((req, res, next) => {
-//   res.setHeader('Access-Control-Allow-Origin', 'http://localhost:5173');
-//   res.setHeader('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE');
-//   res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization');
-//   next();
-// });
+// Enable CORS with specific origin
+app.use(cors());
+
+// Handle preflight requests for all routes
+app.options('*', cors());
+
 app.use(express.urlencoded({extended: false}));
 app.use(express.json());
 app.use(compression())
@@ -60,8 +59,11 @@ const port = process.env.SEVERPORT || 8080
 app.use("/js", express.static(path.join(__dirname, 'dist', 'assets', 'index-TSNK7VKS.js')));
 app.use(express.static(path.join(__dirname, 'dist')));
 
+// app.get("/", (req, res) => {
+//   res.sendFile(path.join(__dirname, 'dist', 'index.html'));
+// });
 app.get("/", (req, res) => {
-  res.sendFile(path.join(__dirname, 'dist', 'index.html'));
+  res.send("path.join(__dirname, 'dist', 'index.html')");
 });
 
 app.use("/user", adminauth);

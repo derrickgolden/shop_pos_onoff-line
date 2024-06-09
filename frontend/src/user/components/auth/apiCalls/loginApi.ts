@@ -23,11 +23,9 @@ const loginApi = ({ data, dispatch, setUserDetails, navigate, setLoginDetails }:
         body: data
         })
         .then(response =>{
-            console.log(response)
             return response.json();
         } )
         .then(data => {
-            console.log(data)
             if(data.success){
                 sessionStorage.setItem("user", JSON.stringify(data?.details[0]));
                 sessionStorage.setItem("userToken", JSON.stringify(data?.token));

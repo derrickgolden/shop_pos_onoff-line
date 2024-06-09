@@ -20,6 +20,9 @@ const getSalesReport_1 = __importDefault(require("./user/routes/sales/getSalesRe
 const shop_1 = __importDefault(require("./user/routes/shop"));
 const stock_1 = __importDefault(require("./user/routes/stock"));
 const getPayMethodsReport_1 = __importDefault(require("./user/routes/payments/getPayMethodsReport"));
+const paymentDetails_1 = __importDefault(require("./user/routes/payments/paymentDetails"));
+const customers_1 = __importDefault(require("./user/routes/customers"));
+const invoices_1 = __importDefault(require("./user/routes/invoices"));
 const authenticateToken_1 = require("./user/middlewares/authenticateToken");
 const storage = multer_1.default.diskStorage({
     destination: (req, file, callback) => {
@@ -38,13 +41,15 @@ const storage = multer_1.default.diskStorage({
 });
 const upload = (0, multer_1.default)({ storage: storage });
 const app = (0, express_1.default)();
-app.use((0, cors_1.default)({ origin: ["https://shoppos.netlify.app", "http://localhost:5173"] }));
-// app.use((req, res, next) => {
-//   res.setHeader('Access-Control-Allow-Origin', 'http://localhost:5173');
-//   res.setHeader('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE');
-//   res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization');
-//   next();
-// });
+// Enable CORS with specific origin
+app.use((0, cors_1.default)({
+    origin: 'https://karibuchakula.co.ke',
+    methods: 'GET,HEAD,PUT,PATCH,POST,DELETE',
+    credentials: true,
+    allowedHeaders: 'Content-Type,Authorization'
+}));
+// Handle preflight requests for all routes
+app.options('*', (0, cors_1.default)());
 app.use(express_1.default.urlencoded({ extended: false }));
 app.use(express_1.default.json());
 app.use((0, compression_1.default)());
@@ -53,16 +58,16 @@ const port = process.env.SEVERPORT || 8080;
 app.use("/js", express_1.default.static(path_1.default.join(__dirname, 'dist', 'assets', 'index-TSNK7VKS.js')));
 app.use(express_1.default.static(path_1.default.join(__dirname, 'dist')));
 app.get("/", (req, res) => {
-    res.sendFile(path_1.default.join(__dirname, 'dist', 'index.html'));
+    res.sendFile("Hello");
 });
 app.use("/user", auth_1.default);
 app.use("/user", upload.single('logo'), authenticateToken_1.authenticateToken, shop_1.default);
-app.use("/user/inventory", productGroup_1.default);
-app.use("/user/inventory", productList_1.default);
-app.use("/user/sales", authenticateToken_1.authenticateToken, registerSales_1.default);
-app.use("/user/sales", getSalesReport_1.default);
+app.use("/user/inventory", [productGroup_1.default, productList_1.default]);
+app.use("/user/sales", authenticateToken_1.authenticateToken, [registerSales_1.default, getSalesReport_1.default]);
 app.use("/user/stock", stock_1.default);
-app.use("/user/pay-method", getPayMethodsReport_1.default);
+app.use("/user/pay-method", [getPayMethodsReport_1.default, paymentDetails_1.default]);
+app.use("/user/customer", customers_1.default);
+app.use("/user/invoice", invoices_1.default);
 app.use('/uploads', express_1.default.static(path_1.default.join(__dirname, 'uploads')));
 const serverInstance = app.listen(port, () => {
     console.log("Listening to port: ", port);
